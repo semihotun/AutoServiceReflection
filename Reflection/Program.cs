@@ -19,7 +19,7 @@ namespace Reflection
 
         public class Services
         {
-            IFile file = new File();
+            IFileService file = new FileService();
             public void AddAbstract()
             {
                 var fileList = file.ReadDomainModel();
@@ -32,6 +32,7 @@ namespace Reflection
                         using System.Collections.Generic;
                         using System.Text;
                         using X.PagedList;
+                        using Reflection.Domain;
                         namespace Business.Abstract {{
 
                             public interface {configureClass.abstractName}  
@@ -43,11 +44,11 @@ namespace Reflection
                             }}
 
                         }}";
+                    var removeFromTapText = new RegexHelper().RemoveFromTap(classText);
+                    var folderPath = Environment.CurrentDirectory.ToString().Replace("\\bin\\Debug\\netcoreapp3.1", "") + "\\Manager\\Abstract\\" + configureClass.abstractName + ".cs";
+                    file.CreateFile(folderPath, removeFromTapText);
+                    Console.WriteLine(removeFromTapText);
                 }
-
-
-                Console.WriteLine(new RegexHelper().RemoveFromTap(classText));
-
             }
             public void AddConcrete()
             {
@@ -64,13 +65,16 @@ namespace Reflection
                         using System.Collections.Generic;
                         using System.Text;
                         using X.PagedList;
+                        using Reflection.DAL.Abstract;
+                        using Reflection.Domain;
+                        using Business.Abstract;
                         namespace Business.Concrete {{
-                            public class {configureClass.concretetName} : {configureClass.abstractName} 
+                            public {configureClass.concretetName} : {configureClass.abstractName} 
                             {{ 
                                  private readonly {configureClass.dal} _{configureClass.dalName};
 
                                  public class {configureClass.concretetName}({configureClass.dal} {configureClass.dalName}){{
-                                    this.{configureClass.dalName}={configureClass.dalName};
+                                    this._{configureClass.dalName}={configureClass.dalName};
                                  }}
 
                                  public void Add{fileName}({fileName} model){{
@@ -93,15 +97,17 @@ namespace Reflection
 
                             }}
                         }}";
+
+
+                    var removeFromTapText = new RegexHelper().RemoveFromTap(classText);
+                    var folderPath = Environment.CurrentDirectory.ToString().Replace("\\bin\\Debug\\netcoreapp3.1", "") + "\\Manager\\Concrete\\" + configureClass.concretetName + ".cs";
+                    file.CreateFile(folderPath, removeFromTapText);
+                    Console.WriteLine(removeFromTapText);
                 }
 
-
-                Console.WriteLine(new RegexHelper().RemoveFromTap(classText));
+            
 
             }
-
-
-
 
         }
 
@@ -132,10 +138,6 @@ namespace Reflection
 
         public string parameterIfQuery { get; set; }
     }
-
-
-
-
 
     public interface IConfigureClassSetting
     {
@@ -178,9 +180,9 @@ namespace Reflection
                 configureClass.parameters = configureClass.parameters + propertyType + " " + propertyName + "=" + new veriableHelper().GetDefaultValue(Type.GetType(propertyInfo.PropertyType.FullName)) + ",";
 
                 configureClass.parameterIfQuery = configureClass.parameterIfQuery+ @$"
-                if (!{propertyName} == {new veriableHelper().GetDefaultValue(Type.GetType(propertyInfo.PropertyType.FullName))})
+                if ({propertyName} != {new veriableHelper().GetDefaultValue(Type.GetType(propertyInfo.PropertyType.FullName))})
                 {{
-                    query=query.where(x=>x.{propertyName}=={propertyName})
+                    query=query.where(x=>x.{propertyName}=={propertyName});
                 }}
                 ";
 
@@ -203,10 +205,12 @@ namespace Reflection
     {
         public string GetDefaultValue(Type t)
         {
+            var type = "null";
             if (t.IsValueType)
-                return Activator.CreateInstance(t).ToString();
+                 type= Activator.CreateInstance(t).ToString().ToLower();
 
-            return "null";
+            return type;
+            
         }
     }
 
@@ -233,17 +237,24 @@ namespace Reflection
 
 
 
-    public interface IFile
+    public interface IFileService
     {
         public void CreateFile(string DirectoryName, string WriteText);
         public List<string> ReadDomainModel();
     }
 
-    public class File : IFile
+    public class FileService : IFileService
     {
         public void CreateFile(string DirectoryName, string WriteText)
         {
-
+            File.WriteAllText(DirectoryName, string.Empty);
+            FileStream fileStream = new FileStream(DirectoryName, FileMode.Open, FileAccess.Write);
+            using (StreamWriter writer = new StreamWriter(fileStream))
+            {
+                writer.WriteLine(WriteText);
+                writer.Close();
+            }
+            fileStream.Close();
         }
         public List<string> ReadDomainModel()
         {

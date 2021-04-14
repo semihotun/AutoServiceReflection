@@ -6,17 +6,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="DAL\Abstract\" />
-    <Folder Include="DAL\Concrete\" />
     <Folder Include="Context\" />
-    <Folder Include="DAL\" />
     <Folder Include="Repository\" />
-    <Folder Include="Service\Abstract\" />
-    <Folder Include="Service\Concrete\" />
+    <Folder Include="Manager\Abstract\" />
+    <Folder Include="Manager\Concrete\" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Hosting.Abstractions" Version="2.2.0" />
+    <PackageReference Include="X.PagedList" Version="8.0.7" />
   </ItemGroup>
 
 </Project>
