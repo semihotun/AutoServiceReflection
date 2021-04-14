@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Hosting;
+using Newtonsoft.Json;
 using Reflection.Domain;
 using System;
 using System.Collections.Generic;
@@ -13,6 +14,7 @@ namespace Reflection
         static void Main(string[] args)
         {
             Services services = new Services();
+            services.AddAbstract();
             services.AddConcrete();
 
         }
@@ -24,6 +26,7 @@ namespace Reflection
             {
                 var fileList = file.ReadDomainModel();
                 var classText = "";
+                var setting = JsonHelper.Settings;
                 foreach (var fileName in fileList)
                 {
                     var configureClass = new ConfigureClassSetting().AbstractServiceSetting(fileName);
@@ -32,8 +35,8 @@ namespace Reflection
                         using System.Collections.Generic;
                         using System.Text;
                         using X.PagedList;
-                        using Reflection.Domain;
-                        namespace Business.Abstract {{
+                        using {setting.MainModelNameSpace};
+                        namespace {setting.ManagerAbstractNameSpace} {{
 
                             public interface {configureClass.abstractName}  
                             {{ 
@@ -44,6 +47,7 @@ namespace Reflection
                             }}
 
                         }}";
+
                     var removeFromTapText = new RegexHelper().RemoveFromTap(classText);
                     var folderPath = Environment.CurrentDirectory.ToString().Replace("\\bin\\Debug\\netcoreapp3.1", "") + "\\Manager\\Abstract\\" + configureClass.abstractName + ".cs";
                     file.CreateFile(folderPath, removeFromTapText);
@@ -56,6 +60,7 @@ namespace Reflection
                 var fileList = file.ReadDomainModel();
                 PropertyInfo[] propertyInfos;
                 propertyInfos = typeof(Product).GetProperties();
+                var setting = JsonHelper.Settings;
                 foreach (var fileName in fileList)
                 {
                     var configureClass = new ConfigureClassSetting().ConcreteServiceSetting(fileName);
@@ -65,15 +70,15 @@ namespace Reflection
                         using System.Collections.Generic;
                         using System.Text;
                         using X.PagedList;
-                        using Reflection.DAL.Abstract;
-                        using Reflection.Domain;
-                        using Business.Abstract;
-                        namespace Business.Concrete {{
-                            public {configureClass.concretetName} : {configureClass.abstractName} 
+                        using {setting.DalAbstractNameSpace};
+                        using {setting.MainModelNameSpace};
+                        using {setting.ManagerAbstractNameSpace};
+                        namespace {setting.ManagerConcreteNameSpace} {{
+                            public class {configureClass.concretetName} : {configureClass.abstractName} 
                             {{ 
                                  private readonly {configureClass.dal} _{configureClass.dalName};
 
-                                 public class {configureClass.concretetName}({configureClass.dal} {configureClass.dalName}){{
+                                 public  {configureClass.concretetName}({configureClass.dal} {configureClass.dalName}){{
                                     this._{configureClass.dalName}={configureClass.dalName};
                                  }}
 
@@ -97,12 +102,11 @@ namespace Reflection
 
                             }}
                         }}";
-
-
                     var removeFromTapText = new RegexHelper().RemoveFromTap(classText);
-                    var folderPath = Environment.CurrentDirectory.ToString().Replace("\\bin\\Debug\\netcoreapp3.1", "") + "\\Manager\\Concrete\\" + configureClass.concretetName + ".cs";
+                    var folderPath = Directory.MainDirectory + "\\Manager\\Concrete\\" + configureClass.concretetName + ".cs";
                     file.CreateFile(folderPath, removeFromTapText);
                     Console.WriteLine(removeFromTapText);
+                   
                 }
 
             
@@ -113,6 +117,48 @@ namespace Reflection
 
     }
 
+    public class Directory
+    {
+        public static string MainDirectory => Environment.CurrentDirectory.ToString().Replace("\\bin\\Debug\\netcoreapp3.1", "");
+
+    }
+
+
+
+    public class JsonHelper
+    {
+        public class SettingModel
+        {
+            public string DALAbstractFolderPath { get; set; }
+            public string DALConcreteFolderPath { get; set; }
+            public string DalAbstractNameSpace { get; set; }
+            public string DalConcreteNameSpace { get; set; }
+            public string ManagerAbstractFolderPath { get; set; }
+            public string ManagerConcreteFolderPath { get; set; }
+            public string ManagerAbstractNameSpace { get; set; }
+            public string ManagerConcreteNameSpace { get; set; }
+            public string MainModelNameSpace { get; set; }
+
+        }
+        public static SettingModel Settings { get; set; }
+        static JsonHelper()
+        {
+            var settingsStr = File.ReadAllText(Directory.MainDirectory+"\\GenerateService.json");
+            dynamic settingjson = null;
+            try
+            {
+                settingjson = JsonConvert.DeserializeObject<SettingModel>(settingsStr);
+            }
+            catch { }
+
+            if (settingjson != null)
+            {
+                Settings = settingjson;
+            }
+
+        }
+    }
+
     public class StringHelper
     {
         public static string FirstLatterLower(string text)
@@ -121,7 +167,6 @@ namespace Reflection
             return returnText;         
         }
     }
-
 
     public class ConfigureClass
     {
@@ -185,7 +230,6 @@ namespace Reflection
                     query=query.where(x=>x.{propertyName}=={propertyName});
                 }}
                 ";
-
             }
 
             configureClass.abstractName = "I" + fileName + "Manager";
@@ -195,10 +239,6 @@ namespace Reflection
             return configureClass;
         }
     }
-
-
-
-
 
 
     public class veriableHelper
@@ -215,11 +255,6 @@ namespace Reflection
     }
 
 
-
-
-
-
-
     public interface IRegexHelper
     {
         string RemoveFromTap(string classText);
@@ -233,9 +268,6 @@ namespace Reflection
             return " " + line.TrimStart();
         }
     }
-
-
-
 
     public interface IFileService
     {
@@ -270,6 +302,9 @@ namespace Reflection
             return filesName;
         }
     }
+
+
+
 
 }
 

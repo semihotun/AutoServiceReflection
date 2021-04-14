@@ -1,0 +1,12 @@
+{
+  "DALAbstractFolderPath": "\\DAL\\Abstract\\",
+  "DALConcreteFolderPath": "\\DAL\\Concrete\\",
+  "DalAbstractNameSpace": "Reflection.DAL.Abstract",
+  "DalConcreteNameSpace": "Reflection.DAL.Concrete",
+  "ManagerAbstractFolderPath": "\\Manager\\Abstract\\",
+  "ManagerConcreteFolderPath": "\\Manager\\Concrete\\",
+  "ManagerAbstractNameSpace": "Reflection.Manager.Abstract",
+  "ManagerConcreteNameSpace": "Reflection.Manager.Concrete",
+  "MainModelNameSpace": "Reflection.Domain"
+
+}
