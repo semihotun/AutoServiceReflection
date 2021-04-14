@@ -26,7 +26,7 @@
  _productDAL.Update(model); 
  } 
  
- public void GetAllProduct(int Id=0,String Name=null,Boolean ShowHide=false){ 
+ public List<Product> GetAllProduct(int Id=0,String Name=null,Boolean ShowHide=false,int pageIndex = 1, int pageSize = int.MaxValue, string orderbytext = null){ 
  var query= _productDAL.Table(); 
  
  if (Id != 0) 
@@ -44,7 +44,7 @@
  query=query.where(x=>x.ShowHide==ShowHide); 
  } 
  
- return query.tolist(); 
+ return new PagedList<Product>(query,pageIndex,pageSize); 
  } 
  
  } 

@@ -10,7 +10,7 @@
  void AddProduct(Product model); 
  void DeleteProduct(Product model); 
  void UpdateProduct(Product model); 
- void GetAllProduct(int Id=0,String Name=null,Boolean ShowHide=false); 
+ IPagedList<Product>GetAllProduct(int Id=0,String Name=null,Boolean ShowHide=false,int pageIndex = 1, int pageSize = int.MaxValue, string orderbytext = null); 
  } 
  
  }
